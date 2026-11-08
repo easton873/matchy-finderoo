@@ -88,7 +88,7 @@ async function playGame(label: string, names: string[], settings: object, opts: 
       handled.add(key);
       if (s.phase === 'hint') {
         assert.equal(s.participantIds.length, N);
-        assert.deepEqual(s.layout, { pairSlots: Math.floor(N / 2) - 1, noneSlot: N % 2 === 1 });
+        assert.deepEqual(s.layout, { pairSlots: Math.floor(N / 2), noneSlot: N % 2 === 1 });
         const round = new Map<string, string>();
         for (const b of bots) {
           await sleep(5);
@@ -141,28 +141,30 @@ async function playGame(label: string, names: string[], settings: object, opts: 
           if (p && b.id < p) pairsAll.push([b.id, p]);
         }
         for (const b of bots) {
-          const me = b.id;
-          const layout = s.layout;
+                    const layout = s.layout;
           let guess: GuessInput;
           if (opts.perfect) {
-            const mine = partnerOf(me);
-            const others = pairsAll.filter((p) => !p.includes(me) && !(mine && p.includes(mine)));
-            guess = { partner: mine, pairs: others.slice(0, layout.pairSlots), none: layout.noneSlot && unpaired !== me ? unpaired : null };
+            // everyone (including the odd one out) places every real partnership and names the unpaired player
+            guess = { pairs: pairsAll.slice(0, layout.pairSlots), none: layout.noneSlot ? unpaired : null };
           } else {
-            guess = { partner: null, pairs: [], none: null };
+            guess = { pairs: [], none: null };
           }
           if (b === bots[0] && s.round === 1 && s.settings.timers.guess === 0) {
-            // validation: can't pick yourself, can't place someone twice, bad pair counts
-            const bad1 = await emitAck<{ ok: boolean }>(b.sock, 'player:guess', { guess: { partner: me, pairs: [], none: null }, final: true });
-            assert.equal(bad1.ok, false, 'cannot pick yourself');
-            const other = bots[1].id;
-            const bad2 = await emitAck<{ ok: boolean }>(b.sock, 'player:guess', { guess: { partner: other, pairs: [[other, bots[2].id]], none: null }, final: true });
+            // validation: unknown players, the same player twice, too many partnerships
+            const x = bots[1].id;
+            const y = bots[2].id;
+            const bad1 = await emitAck<{ ok: boolean }>(b.sock, 'player:guess', { guess: { pairs: [['nobody', x]], none: null }, final: true });
+            assert.equal(bad1.ok, false, 'unknown player rejected');
+            const bad2 = await emitAck<{ ok: boolean }>(b.sock, 'player:guess', { guess: { pairs: [[x, y], [x, b.id]], none: null }, final: true });
             assert.equal(bad2.ok, false, 'same player in two slots rejected');
-            // a saved draft survives (state echo)
-            const dr = await emitAck<{ ok: boolean }>(b.sock, 'player:guess', { guess: { partner: other, pairs: [], none: null }, final: false });
-            assert(dr.ok);
+            const tooMany = Array.from({ length: layout.pairSlots + 1 }, () => [x, y]);
+            const bad3 = await emitAck<{ ok: boolean }>(b.sock, 'player:guess', { guess: { pairs: tooMany, none: null }, final: true });
+            assert.equal(bad3.ok, false, 'too many partnerships rejected');
+            // placing yourself is fine, and a saved draft survives (state echo)
+            const dr = await emitAck<{ ok: boolean }>(b.sock, 'player:guess', { guess: { pairs: [[b.id, x]], none: null }, final: false });
+            assert(dr.ok, 'can place yourself in a partnership');
             await sleep(30);
-            assert.equal(b.state!.you!.guess!.partner, other, 'draft saved and echoed');
+            assert.deepEqual(b.state!.you!.guess!.pairs, [[b.id, x]], 'draft saved and echoed');
           }
           const r = await emitAck<{ ok: boolean; error?: string }>(b.sock, 'player:guess', { guess, final: true });
           if (s.settings.timers.guess > 0) continue; // timed scenario: the phase may already be over, which is fine
@@ -177,11 +179,11 @@ async function playGame(label: string, names: string[], settings: object, opts: 
       if (s.phase === 'standings') {
         const sumDeltas = Object.values(s.roundDeltas!).reduce((a, b) => a + b, 0);
         if (opts.perfect) {
-          // everyone perfect: each real pair scores 1 each (mutual), and every player fills all their
-          // partnership slots with real pairs (+1 each), and every non-odd player also names the odd one (+1).
-          const pairs = Math.floor(N / 2);
-          const slotPairs = Math.max(0, pairs - 1);
-          assert.equal(sumDeltas, 2 * pairs + N * slotPairs + (N % 2 ? N - 1 : 0), 'perfect round total');
+          // everyone perfect: each real pair scores 1 each (mutual) = 2P; every paired player also places the other
+          // P-1 pairs, and the odd player places all P; and when N is odd every player (odd one included) names the odd one.
+          const P = Math.floor(N / 2);
+          const expected = 2 * P + 2 * P * (P - 1) + (N % 2 ? P + N : 0);
+          assert.equal(sumDeltas, expected, 'perfect round total');
         } else {
           assert.equal(sumDeltas, 0, 'empty guesses score nothing');
         }

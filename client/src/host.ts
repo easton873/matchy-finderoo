@@ -210,7 +210,7 @@ function hintPhaseView(s: ClientState): string {
 function guessPhaseView(s: ClientState): string {
   const n = s.hints.length;
   const cw = n <= 3 ? 22 : n <= 6 ? 15 : n <= 8 ? 13 : n <= 12 ? 12 : n <= 18 ? 10 : 8; // card width in rem, so every hint fits on screen
-  const pairs = s.layout.pairSlots + 1;
+  const pairs = s.layout.pairSlots;
   const odd = s.layout.noneSlot ? ' Someone has <b>no partner</b> — can you spot who?' : '';
   const cards = s.hints.map((h, i) => hintCardHTML(h, byId(s, h.playerId)).replace('class="hint-card ', `style="animation-delay:${(i * 0.05).toFixed(2)}s" class="hint-card `)).join('');
   return `<section>

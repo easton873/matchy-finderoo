@@ -7,21 +7,19 @@ Everybody is secretly given a word, and **exactly one other player has the same 
 **How a round works**
 
 1. **Hint** – each player sees their secret word and either types **one word** (spaces aren't allowed) or **draws** a picture (black pen only). Being too obvious is allowed – it just helps the other teams too.
-2. **Guess** – all hints appear on the big screen and on every phone. Each player drags *other players' names* into slots:
-   - **My partner** (1 slot)
-   - **Partnership 1, 2, …** (2 names each) – guesses for the *other* pairs
-   - **Has no partner** (only when the player count is odd)
-   - names you haven't placed wait in the **Players** list
+2. **Guess** – every player becomes a **card**: their name plus the hint they gave (word or drawing). All cards start in a pool on your phone – *including your own*. Drag them into slots:
+   - **Partnership 1, 2, …** – two cards each. Your own partnership is just one of these, so put yourself and the person you think is your partner together.
+   - **Odd one out** – only when the player count is odd.
    
-   On a phone you can also tap a name and then tap a slot.
+   Tap the 🔍 on a card to enlarge it. On a phone you can also tap a card and then tap a slot.
 3. **Reveal** – partnerships are revealed one by one on the big screen, with their word, both hints, whether the two partners found each other, and who spotted the partnership. The player with no partner comes last.
 4. **Standings** – current standings, then straight into the next round (new partners, new words).
 
 **Scoring**
 
-- **+1 for finding your partner – but only if your partner also found you.** If either of you misses, neither of you gets it.
+- **+1 for finding your partner** – you placed yourself and your partner together in a partnership – **but only if your partner also placed the two of you together.** If either of you misses, neither of you gets it.
 - **+1 for every other partnership you place exactly right.** No partial credit.
-- **+1 for correctly naming the player with no partner.**
+- **+1 for correctly naming the player with no partner** (that can be yourself).
 
 The game ends at the end of the round in which someone reaches **X points**, or after **X rounds** (chosen in the lobby; ties are allowed). At least **3 players** are needed.
 

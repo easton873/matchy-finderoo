@@ -68,13 +68,6 @@ textarea { flex: 1; min-height: 180px; resize: none; line-height: 1.35; }
 
 /* ---- guess phase ---- */
 .sect { font-size: 12px; font-weight: 900; letter-spacing: 1.5px; text-transform: uppercase; color: var(--ink-dim); margin-top: 4px; }
-.hint-grid { display: flex; gap: 8px; overflow-x: auto; padding-bottom: 4px; flex: none; -webkit-overflow-scrolling: touch; }
-.hint-grid .hint-card { flex: none; width: 96px; }
-.hint-grid .hint-body { min-height: 56px; }
-.hint-grid .hint-text { font-size: 17px; padding: 10px 4px; }
-.phone > main > * { flex-shrink: 0; }
-.hint-card { cursor: zoom-in; }
-.hint-card.you { opacity: 0.7; }
 .slot { border-radius: 14px; border: 3px dashed var(--panel-strong); background: rgba(255, 255, 255, 0.04); padding: 6px 8px; display: flex; flex-direction: column; gap: 4px; min-height: 56px; transition: border-color 0.1s, background 0.1s; }
 .slot .slot-label { font-size: 13px; font-weight: 900; letter-spacing: 0.5px; color: var(--ink-dim); }
 .slot .slot-items { display: flex; flex-wrap: wrap; gap: 6px; min-height: 38px; align-items: center; }
@@ -82,18 +75,29 @@ textarea { flex: 1; min-height: 180px; resize: none; line-height: 1.35; }
 .slot.partner { border-color: #ff70a6; }
 .slot.none { border-color: #7b6cff; }
 .slot .ph { color: var(--ink-dim); opacity: 0.6; font-size: 14px; font-style: italic; }
-.pair-row { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
-.pair-row .slot { grid-column: 1 / -1; }
 .pool { border-style: solid; border-color: transparent; background: var(--panel); }
-.pchip { display: inline-flex; align-items: center; gap: 6px; padding: 7px 12px 7px 7px; border-radius: 999px; background: var(--panel-strong); border: 3px solid var(--pc); font-weight: 900; font-size: 16px; touch-action: none; user-select: none; -webkit-user-select: none; cursor: grab; }
-.pchip i { font-style: normal; display: grid; place-items: center; width: 26px; height: 26px; border-radius: 50%; background: var(--pc); font-size: 15px; }
-.pchip.sel { box-shadow: 0 0 0 4px var(--accent); }
-.pchip.dragging { opacity: 0.25; }
-.pchip.ghost { position: fixed; z-index: 50; pointer-events: none; transform: translate(-50%, -60%) scale(1.1); box-shadow: 0 10px 24px rgba(0, 0, 0, 0.5); opacity: 1; }
-.locked .pchip { cursor: default; }
-.modal .card .drawing { width: 100%; height: auto; border-radius: 12px; }
+.locked .modal .card .drawing { width: 100%; height: auto; border-radius: 12px; }
 .modal .card .big-hint { font-size: 40px; font-weight: 1000; text-align: center; overflow-wrap: anywhere; }
 
 .good-msg { color: var(--good); font-weight: 900; }
 .bad-msg { color: var(--ink-dim); font-weight: 800; }
 .rank { font-size: 64px; font-weight: 1000; color: var(--accent); line-height: 1; }
+
+.phone > main > * { flex-shrink: 0; }
+.pool { border-style: solid; border-color: transparent; background: var(--panel); min-height: 150px; }
+/* a draggable player card: name + their hint (word or drawing) */
+.pcard { position: relative; width: 94px; border-radius: 14px; border: 3px solid var(--pc); background: var(--panel-strong); overflow: hidden; touch-action: none; user-select: none; -webkit-user-select: none; cursor: grab; }
+.pc-who { display: flex; align-items: center; gap: 4px; padding: 3px 6px; background: var(--pc); color: #1b1033; font-weight: 900; font-size: 13px; min-width: 0; }
+.pc-who i { font-style: normal; font-size: 14px; }
+.pc-who span { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.pc-body { display: grid; place-items: center; height: 88px; }
+.pc-body .drawing { display: block; width: 100%; height: 100%; }
+.pc-body .hint-text { font-size: 15px; padding: 4px; line-height: 1.1; }
+.pc-body .hint-none { font-size: 12px; padding: 4px; }
+.pcard .zoom { position: absolute; right: 2px; bottom: 2px; width: 26px; height: 26px; border-radius: 50%; background: rgba(0, 0, 0, 0.55); font-size: 13px; line-height: 1; display: grid; place-items: center; padding: 0; }
+.pcard.sel { box-shadow: 0 0 0 4px var(--accent); }
+.pcard.dragging { opacity: 0.25; }
+.pcard.ghost { position: fixed; z-index: 50; pointer-events: none; transform: translate(-50%, -60%) scale(1.08); box-shadow: 0 10px 24px rgba(0, 0, 0, 0.5); opacity: 1; }
+.slot .slot-items { gap: 8px; min-height: 112px; }
+.pcard .you-tag { position: absolute; left: 3px; bottom: 3px; padding: 1px 6px; border-radius: 999px; background: var(--accent); color: #1b1033; font-size: 11px; font-weight: 900; }
+.slot .slot-items { min-height: 126px; }

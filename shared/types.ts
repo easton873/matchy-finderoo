@@ -52,20 +52,18 @@ export interface HintPublic {
 // ---- guesses -----------------------------------------------------------------------------
 
 /**
- * What one player thinks the pairings are.
- * - partner: who they think their own partner is
- * - pairs: other partnerships (2 player ids each)
+ * What one player thinks the pairings are. Every player (including yourself) can be placed.
+ * - pairs: partnerships, 2 player ids each (your own partnership is just one of them)
  * - none: who they think has no partner (only when the player count is odd)
  */
 export interface GuessInput {
-  partner: string | null;
   pairs: string[][];
   none: string | null;
 }
 
-/** Number of "Partnership N" slots, and whether there is a "No partner" slot, for a given player count. */
+/** Number of "Partnership N" slots, and whether there is an "odd one out" slot, for a given player count. */
 export function guessLayout(playerCount: number) {
-  return { pairSlots: Math.max(0, Math.floor(playerCount / 2) - 1), noneSlot: playerCount % 2 === 1 };
+  return { pairSlots: Math.floor(playerCount / 2), noneSlot: playerCount % 2 === 1 };
 }
 
 // ---- reveal ------------------------------------------------------------------------------

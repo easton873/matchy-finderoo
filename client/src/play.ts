@@ -1,7 +1,7 @@
 import './styles-common.css';
 import './play.css';
 import { DRAW_SIZE, MAX_POINTS, MAX_STROKES, type ClientState, type GuessInput, type HintPublic, type PlayerInfo, type Stroke } from '../../shared/types';
-import { $, drawingSVG, esc, hintCardHTML, ordinal, rankPlayers, socket, syncState, timerHTML } from './common';
+import { $, drawingSVG, esc, hintBody, ordinal, rankPlayers, socket, syncState, timerHTML } from './common';
 
 interface View {
   header?: string;
@@ -286,12 +286,13 @@ function setupCanvas(onChange: () => void) {
 // ---- guess phase
 
 function slotsFor(s: ClientState) {
-  const list: { key: SlotKey; label: string; cap: number; cls: string }[] = [{ key: 'partner', label: '💘 My partner', cap: 1, cls: 'partner' }];
+  const list: { key: SlotKey; label: string; cap: number; cls: string }[] = [];
   for (let i = 0; i < s.layout.pairSlots; i++) list.push({ key: `pair:${i}`, label: `🤝 Partnership ${i + 1}`, cap: 2, cls: 'pair' });
-  if (s.layout.noneSlot) list.push({ key: 'none', label: '🙅 Has no partner', cap: 1, cls: 'none' });
+  if (s.layout.noneSlot) list.push({ key: 'none', label: '🙅 Odd one out (no partner)', cap: 1, cls: 'none' });
   return list;
 }
 
+/** Everyone - including you - starts in the pool. Your own partnership is just one of the partnership slots. */
 function initGuess(s: ClientState) {
   const key = `${s.code}|${s.round}`;
   if (key === initKey) return;
@@ -299,11 +300,9 @@ function initGuess(s: ClientState) {
   selected = null;
   confirmIncomplete = false;
   place = {};
-  const others = s.participantIds.filter((id) => id !== s.you!.id);
-  others.forEach((id) => (place[id] = 'pool'));
+  s.participantIds.forEach((id) => (place[id] = 'pool'));
   const g = s.you!.guess; // restores a saved draft after a refresh / reconnect
   if (g) {
-    if (g.partner && g.partner in place) place[g.partner] = 'partner';
     if (g.none && g.none in place) place[g.none] = 'none';
     g.pairs.forEach((p, i) => p.forEach((id) => id in place && (place[id] = `pair:${i}`)));
   }
@@ -312,7 +311,6 @@ function initGuess(s: ClientState) {
 function currentGuess(s: ClientState): GuessInput {
   const inSlot = (k: SlotKey) => Object.keys(place).filter((id) => place[id] === k);
   return {
-    partner: inSlot('partner')[0] ?? null,
     none: inSlot('none')[0] ?? null,
     pairs: Array.from({ length: s.layout.pairSlots }, (_, i) => inSlot(`pair:${i}`)),
   };
@@ -322,9 +320,12 @@ function saveDraft(s: ClientState) {
   socket.emit('player:guess', { guess: currentGuess(s), final: false });
 }
 
-function chipHTML(s: ClientState, id: string) {
+/** The thing you drag: a player's name together with the hint (word or drawing) they gave. */
+function cardHTML(s: ClientState, id: string) {
   const p = byId(s, id);
-  return `<span class="pchip ${selected === id ? 'sel' : ''}" data-chip="${esc(id)}" style="--pc:${p?.color ?? '#888'}"><i>${p?.emoji ?? '❔'}</i>${esc(p?.name ?? '?')}</span>`;
+  const h = s.hints.find((x) => x.playerId === id) ?? null;
+  const you = id === s.you!.id;
+  return `<div class="pcard ${selected === id ? 'sel' : ''}" data-chip="${esc(id)}" style="--pc:${p?.color ?? '#888'}"><div class="pc-who"><i>${p?.emoji ?? '❔'}</i><span>${esc(p?.name ?? '?')}</span></div><div class="pc-body ${h?.kind ?? 'none'}">${hintBody(h)}</div>${you ? '<b class="you-tag">you</b>' : ''}<button class="zoom" data-zoom="${esc(id)}" aria-label="Enlarge">🔍</button></div>`;
 }
 
 function place_(s: ClientState, id: string, slot: SlotKey): boolean {
@@ -334,7 +335,7 @@ function place_(s: ClientState, id: string, slot: SlotKey): boolean {
     if (!def) return false;
     const occupants = Object.keys(place).filter((x) => place[x] === slot);
     if (occupants.length >= def.cap) {
-      if (def.cap === 1) place[occupants[0]] = 'pool'; // swap: the old name goes back to the list
+      if (def.cap === 1) place[occupants[0]] = 'pool'; // swap: the old card goes back to the pool
       else {
         toast('That partnership is full — move someone out first.');
         return false;
@@ -362,28 +363,26 @@ function guessView(s: ClientState): View {
   const slots = slotsFor(s);
   const slotHTML = (d: (typeof slots)[number]) => {
     const items = Object.keys(place).filter((id) => place[id] === d.key);
-    return `<div class="slot ${d.cls}" data-slot="${d.key}"><div class="slot-label">${d.label}</div><div class="slot-items">${items.map((id) => chipHTML(s, id)).join('') || '<span class="ph">drag a name here</span>'}</div></div>`;
+    return `<div class="slot ${d.cls}" data-slot="${d.key}"><div class="slot-label">${d.label}</div><div class="slot-items">${items.map((id) => cardHTML(s, id)).join('') || `<span class="ph">drag ${d.cap === 2 ? 'two cards' : 'a card'} here</span>`}</div></div>`;
   };
-  const poolIds = Object.keys(place).filter((id) => place[id] === 'pool');
-  const hints = s.hints.map((h) => hintCardHTML(h, byId(s, h.playerId), h.playerId === you.id ? 'you' : '')).join('');
+  const poolIds = s.participantIds.filter((id) => place[id] === 'pool');
   const unplaced = poolIds.length;
   return {
-    header: header(kicker, 'Who is partnered?', { sub: 'Drag names into the slots (or tap a name, then tap a slot)', timer: true }),
-    main: `<div class="sect">Everyone's hints (swipe · tap to enlarge)</div><div class="hint-grid">${hints}</div>
-      <div class="sect">Your guesses</div>
-      ${slots.map(slotHTML).join('')}
-      <div class="slot pool" data-slot="pool"><div class="slot-label">Players</div><div class="slot-items">${poolIds.map((id) => chipHTML(s, id)).join('') || '<span class="ph">everyone is placed ✓</span>'}</div></div>`,
+    header: header(kicker, 'Who is partnered?', { sub: 'Drag each card into a partnership — find yours too! (or tap a card, then a slot)', timer: true }),
+    main: `<div class="slot pool" data-slot="pool"><div class="slot-label">Players &amp; their hints · 🔍 to enlarge</div><div class="slot-items">${poolIds.map((id) => cardHTML(s, id)).join('') || '<span class="ph">everyone is placed ✓</span>'}</div></div>
+      ${slots.map(slotHTML).join('')}`,
     footer: `<button class="btn ${confirmIncomplete ? '' : 'green'}" id="submit">${unplaced && confirmIncomplete ? `${unplaced} not placed — tap again to submit anyway` : 'Submit guesses'}</button>`,
     after: () => {
-      app.querySelectorAll<HTMLElement>('.hint-card').forEach((el) =>
-        el.addEventListener('click', () => {
-          const h = s.hints.find((x) => x.playerId === el.dataset.hint);
+      app.querySelectorAll<HTMLElement>('.zoom').forEach((el) =>
+        el.addEventListener('click', (e) => {
+          e.stopPropagation();
+          const h = s.hints.find((x) => x.playerId === el.dataset.zoom);
           if (h) openHintModal(h, s);
         }),
       );
       app.querySelectorAll<HTMLElement>('[data-slot]').forEach((el) =>
         el.addEventListener('click', (e) => {
-          if (swallowClick || (e.target as HTMLElement).closest('.pchip') || !selected) return;
+          if (swallowClick || (e.target as HTMLElement).closest('.pcard') || !selected) return;
           if (place_(s, selected, el.dataset.slot!)) render(true);
         }),
       );
@@ -403,7 +402,7 @@ function guessView(s: ClientState): View {
 
 let swallowClick = false;
 
-/** Pointer-based drag and drop (HTML5 drag events don't work on phones). A short tap just selects a name. */
+/** Pointer-based drag and drop (HTML5 drag events don't work on phones). A short tap just selects a card. */
 function setupDrag(s: ClientState) {
   const main = $('main', app)!;
   let d: { id: string; el: HTMLElement; x: number; y: number; ghost: HTMLElement | null; scroller: number | null; lastY: number } | null = null;
@@ -421,26 +420,27 @@ function setupDrag(s: ClientState) {
     d = null;
   };
 
-  app.querySelectorAll<HTMLElement>('.pchip').forEach((chip) => {
-    chip.addEventListener('pointerdown', (e) => {
-      chip.setPointerCapture(e.pointerId);
-      d = { id: chip.dataset.chip!, el: chip, x: e.clientX, y: e.clientY, ghost: null, scroller: null, lastY: e.clientY };
+  app.querySelectorAll<HTMLElement>('.pcard').forEach((card) => {
+    card.addEventListener('pointerdown', (e) => {
+      if ((e.target as HTMLElement).closest('.zoom')) return;
+      card.setPointerCapture(e.pointerId);
+      d = { id: card.dataset.chip!, el: card, x: e.clientX, y: e.clientY, ghost: null, scroller: null, lastY: e.clientY };
     });
-    chip.addEventListener('pointermove', (e) => {
+    card.addEventListener('pointermove', (e) => {
       if (!d) return;
       d.lastY = e.clientY;
       if (!d.ghost) {
         if (Math.hypot(e.clientX - d.x, e.clientY - d.y) < 8) return;
-        d.ghost = chip.cloneNode(true) as HTMLElement;
+        d.ghost = card.cloneNode(true) as HTMLElement;
         d.ghost.classList.add('ghost');
         document.body.appendChild(d.ghost);
-        chip.classList.add('dragging');
-        // scroll the list when dragging near the top/bottom edge
+        card.classList.add('dragging');
+        // scroll the screen when dragging near the top/bottom edge
         d.scroller = window.setInterval(() => {
           if (!d) return;
           const r = main.getBoundingClientRect();
-          if (d.lastY < r.top + 50) main.scrollTop -= 10;
-          else if (d.lastY > r.bottom - 50) main.scrollTop += 10;
+          if (d.lastY < r.top + 60) main.scrollTop -= 10;
+          else if (d.lastY > r.bottom - 60) main.scrollTop += 10;
         }, 16);
       }
       d.ghost.style.left = e.clientX + 'px';
@@ -462,8 +462,8 @@ function setupDrag(s: ClientState) {
       }
       render(true);
     };
-    chip.addEventListener('pointerup', up);
-    chip.addEventListener('pointercancel', () => {
+    card.addEventListener('pointerup', up);
+    card.addEventListener('pointercancel', () => {
       stop();
       render(true);
     });
@@ -487,7 +487,7 @@ function revealView(s: ClientState): View {
       else if (theyFound) msg = `<p class="bad-msg">${esc(nameOf(s, other))} picked you, but you didn't pick them. No point.</p>`;
       else msg = `<p class="bad-msg">You and ${esc(nameOf(s, other))} didn't find each other.</p>`;
     } else if (e.kind === 'odd' && e.aId === you.id) {
-      msg = `<p class="bad-msg">You had no partner this round!</p>`;
+      msg = e.guesserIds.includes(you.id) ? `<p class="good-msg">You worked out you had no partner! +1</p>` : `<p class="bad-msg">You had no partner this round!</p>`;
     } else if (e.guesserIds.includes(mineId)) {
       msg = `<p class="good-msg">You spotted this one! +1</p>`;
     } else {

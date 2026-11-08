@@ -462,7 +462,7 @@ export class Room {
     if (this.phase !== 'guess') return 'Guessing is closed.';
     if (!this.isParticipant(playerId)) return 'You are watching this round.';
     if (this.cur.finals.has(playerId)) return 'You already submitted your guess.';
-    const guess = normalizeGuess(raw, playerId, this.cur.participants);
+    const guess = normalizeGuess(raw, this.cur.participants);
     if (typeof guess === 'string') return guess;
     this.cur.guesses.set(playerId, guess);
     if (final) this.cur.finals.add(playerId);
