@@ -1,0 +1,28 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+  <title>Matchy Finderoo</title>
+  <link rel="stylesheet" href="/src/landing.css" />
+</head>
+<body>
+  <main class="landing">
+    <h1>Matchy<br />Finderoo</h1>
+    <p class="tag">Find your secret partner. Keep it sneaky.</p>
+    <a class="big host" href="/host.html">📺 Host a game <small>on the big screen</small></a>
+    <form id="join" class="join">
+      <input id="code" maxlength="4" placeholder="ROOM CODE" autocapitalize="characters" autocomplete="off" />
+      <button class="big play" type="submit">📱 Join a game</button>
+    </form>
+  </main>
+  <script type="module">
+    import './src/styles-common.css';
+    document.getElementById('join').addEventListener('submit', (e) => {
+      e.preventDefault();
+      const code = document.getElementById('code').value.trim().toUpperCase();
+      location.href = '/play.html' + (code ? '?room=' + encodeURIComponent(code) : '');
+    });
+  </script>
+</body>
+</html>
