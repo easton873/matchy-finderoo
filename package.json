@@ -1,0 +1,32 @@
+{
+  "name": "matchy-finderoo",
+  "version": "1.0.0",
+  "private": true,
+  "description": "A Jackbox-style party game: find your secret partner by their hint. Big screen + phones.",
+  "type": "module",
+  "engines": { "node": ">=18" },
+  "scripts": {
+    "dev": "concurrently -n server,client -c magenta,cyan \"tsx watch server/index.ts\" \"vite --config client/vite.config.ts --host\"",
+    "build": "vite build --config client/vite.config.ts && tsc -p tsconfig.server.json",
+    "start": "node dist/server/server/index.js",
+    "typecheck": "tsc -p tsconfig.server.json --noEmit && tsc -p client/tsconfig.json --noEmit",
+    "test:unit": "tsx test/scoring.test.ts",
+    "test:sim": "tsx test/simulate.ts",
+    "test": "npm run test:unit && npm run test:sim"
+  },
+  "dependencies": {
+    "express": "^4.21.2",
+    "qrcode": "^1.5.4",
+    "socket.io": "^4.8.1"
+  },
+  "devDependencies": {
+    "@types/express": "^4.17.21",
+    "@types/node": "^22.10.0",
+    "@types/qrcode": "^1.5.5",
+    "concurrently": "^9.1.0",
+    "socket.io-client": "^4.8.1",
+    "tsx": "^4.19.2",
+    "typescript": "^5.7.2",
+    "vite": "^6.0.0"
+  }
+}

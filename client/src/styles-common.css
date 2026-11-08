@@ -1,0 +1,43 @@
+:root {
+  --bg-1: #1b1033;
+  --bg-2: #2a1458;
+  --ink: #fff;
+  --ink-dim: #c9b8ee;
+  --panel: rgba(255, 255, 255, 0.09);
+  --panel-strong: rgba(255, 255, 255, 0.16);
+  --accent: #ffd23f;
+  --accent-2: #ff4d6d;
+  --good: #3ddc97;
+  --font: ui-rounded, 'SF Pro Rounded', 'Nunito', 'Segoe UI', system-ui, -apple-system, 'Helvetica Neue', Arial, sans-serif;
+}
+* { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
+html, body { height: 100%; }
+body {
+  font-family: var(--font);
+  color: var(--ink);
+  background: radial-gradient(1200px 800px at 20% 0%, var(--bg-2), var(--bg-1) 70%) fixed;
+  overflow-x: hidden;
+}
+[hidden] { display: none !important; }
+button { font: inherit; color: inherit; cursor: pointer; border: 0; }
+
+.timer { position: relative; display: grid; place-items: center; font-weight: 900; }
+.timer svg { position: absolute; inset: 0; width: 100%; height: 100%; transform: rotate(-90deg); }
+.timer circle { fill: none; stroke-width: 3.2; }
+.timer .track { stroke: rgba(255, 255, 255, 0.18); }
+.timer .arc { stroke: var(--accent); stroke-linecap: round; stroke-dasharray: 100.5; stroke-dashoffset: calc(100.5 * (1 - var(--frac, 1))); transition: stroke-dashoffset 0.25s linear; }
+.timer.urgent .arc { stroke: var(--accent-2); }
+.timer.urgent { color: var(--accent-2); animation: throb 0.5s ease-in-out infinite alternate; }
+.timer.unlimited .arc { stroke-dashoffset: 0; opacity: 0.35; }
+@keyframes throb { to { transform: scale(1.12); } }
+@media (prefers-reduced-motion: reduce) { * { animation-duration: 0.01ms !important; animation-iteration-count: 1 !important; transition-duration: 0.01ms !important; } }
+
+/* hint cards: used on the big screen and on phones */
+.hint-card { display: flex; flex-direction: column; border-radius: 16px; overflow: hidden; background: var(--panel); border: 3px solid var(--pc, #888); min-width: 0; }
+.hint-who { display: flex; align-items: center; gap: 6px; padding: 5px 8px; background: var(--pc, #888); color: #1b1033; font-weight: 900; font-size: 14px; min-width: 0; }
+.hint-who i { font-style: normal; font-size: 16px; }
+.hint-who span { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.hint-body { flex: 1; display: grid; place-items: center; min-height: 64px; }
+.hint-body .drawing { display: block; width: 100%; height: auto; aspect-ratio: 1; }
+.hint-text { padding: 14px 8px; font-size: 22px; font-weight: 900; overflow-wrap: anywhere; text-align: center; }
+.hint-none { padding: 14px 8px; color: var(--ink-dim); font-style: italic; font-size: 14px; }

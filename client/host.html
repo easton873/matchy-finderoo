@@ -1,0 +1,24 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Matchy Finderoo – Host</title>
+</head>
+<body>
+  <div id="host">
+    <div class="blobs"><i></i><i></i><i></i><i></i></div>
+    <div class="hud">
+      <div class="hud-code" id="hudCode"></div>
+      <div class="hud-right">
+        <button id="skip" class="skip" hidden>Skip ▶ <small>space</small></button>
+        <div id="hudTimer" hidden></div>
+      </div>
+    </div>
+    <main id="stage"></main>
+    <div id="strip" class="strip" hidden></div>
+    <div id="conn" class="conn" hidden>Connection lost – trying to reconnect…</div>
+  </div>
+  <script type="module" src="/src/host.ts"></script>
+</body>
+</html>
