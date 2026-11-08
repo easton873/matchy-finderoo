@@ -1,8 +1,8 @@
 :root {
-  --bg-1: #1b1033;
-  --bg-2: #2a1458;
+  --bg-1: #2a0a14;
+  --bg-2: #5c1428;
   --ink: #fff;
-  --ink-dim: #c9b8ee;
+  --ink-dim: #e8bfc4;
   --panel: rgba(255, 255, 255, 0.09);
   --panel-strong: rgba(255, 255, 255, 0.16);
   --accent: #ffd23f;
@@ -34,7 +34,7 @@ button { font: inherit; color: inherit; cursor: pointer; border: 0; }
 
 /* hint cards: used on the big screen and on phones */
 .hint-card { display: flex; flex-direction: column; border-radius: 16px; overflow: hidden; background: var(--panel); border: 3px solid var(--pc, #888); min-width: 0; }
-.hint-who { display: flex; align-items: center; gap: 6px; padding: 5px 8px; background: var(--pc, #888); color: #1b1033; font-weight: 900; font-size: 14px; min-width: 0; }
+.hint-who { display: flex; align-items: center; gap: 6px; padding: 5px 8px; background: var(--pc, #888); color: #2a0a14; font-weight: 900; font-size: 14px; min-width: 0; }
 .hint-who i { font-style: normal; font-size: 16px; }
 .hint-who span { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .hint-body { flex: 1; display: grid; place-items: center; min-height: 64px; }

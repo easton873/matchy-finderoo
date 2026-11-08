@@ -79,7 +79,7 @@ async function prepareJoinInfo() {
       /* fall back to origin */
     }
   }
-  qrDataUrl = await QRCode.toDataURL(`${joinBase}/play.html?room=${roomCode}`, { margin: 1, width: 520, color: { dark: '#1b1033', light: '#ffffff' } });
+  qrDataUrl = await QRCode.toDataURL(`${joinBase}/play.html?room=${roomCode}`, { margin: 1, width: 520, color: { dark: '#2a0a14', light: '#ffffff' } });
   viewKey = '';
   render();
 }
