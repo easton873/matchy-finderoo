@@ -79,7 +79,7 @@ export interface RevealEntry {
   guesserIds: string[];
 }
 
-export const REVEAL_HOLD_MS = 2000;
+export const REVEAL_HOLD_MS = 4000;
 /** How long one reveal card takes to animate; used by the big screen's CSS delays and the server's timer. */
 export function revealTiming(guesserCount: number) {
   const t0 = 2.6; // seconds until the guessers start dropping in

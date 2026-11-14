@@ -122,7 +122,6 @@ h1 { font-size: 4.4rem; font-weight: 1000; line-height: 1; text-shadow: 0 0.3rem
 .rv { width: min(88rem, 94%); display: flex; flex-direction: column; align-items: center; gap: 1.4rem; }
 .rv-title { font-size: 1.7rem; font-weight: 900; letter-spacing: 0.3rem; text-transform: uppercase; color: var(--ink-dim); }
 .rv-pair { display: flex; align-items: flex-start; justify-content: center; gap: 2.6rem; }
-.rv-pair .heart { align-self: center; font-size: 4rem; animation: stamp 0.6s cubic-bezier(0.3, 1.8, 0.5, 1) both 0.5s; }
 .rv-who { display: flex; flex-direction: column; align-items: center; gap: 0.6rem; animation: dropBounce 0.7s cubic-bezier(0.3, 1.6, 0.5, 1) both; animation-delay: var(--d, 0s); }
 .rv-who .av { display: grid; place-items: center; width: 8rem; height: 8rem; border-radius: 50%; background: var(--pc); font-size: 4.8rem; }
 .rv-who .nm { font-size: 2.4rem; font-weight: 1000; }
@@ -141,7 +140,6 @@ h1 { font-size: 4.4rem; font-weight: 1000; line-height: 1; text-shadow: 0 0.3rem
 .rv-chip .plus { color: var(--good); }
 .rv-label { font-size: 1.6rem; font-weight: 900; letter-spacing: 0.25rem; text-transform: uppercase; color: var(--ink-dim); opacity: 0; animation: fadeUp 0.5s ease both; animation-delay: var(--t0); }
 .rv-none { font-size: 2.2rem; font-weight: 900; color: var(--ink-dim); opacity: 0; animation: fadeUp 0.5s ease both; animation-delay: var(--t0); }
-.rv-odd .rv-pair .heart { display: none; }
 .final-note { font-size: 2.2rem; font-weight: 1000; color: var(--accent); }
 .sum-bar { width: min(60rem, 80%); height: 0.7rem; border-radius: 99rem; background: var(--panel); overflow: hidden; }
 .sum-bar i { display: block; height: 100%; background: var(--accent); }

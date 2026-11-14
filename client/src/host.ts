@@ -256,7 +256,7 @@ function revealView(s: ClientState): string {
     <div class="rv-progress">${s.revealIndex + 1} / ${s.revealTotal}</div>
     <div class="rv ${e.kind === 'odd' ? 'rv-odd' : ''}">
       <div class="rv-title">${title}</div>
-      <div class="rv-pair">${who(e.aId, 0)}${e.kind === 'pair' ? `<span class="heart">💞</span>${who(e.bId, 0.25)}` : ''}</div>
+      <div class="rv-pair">${who(e.aId, 0)}${e.kind === 'pair' ? `${who(e.bId, 0.25)}` : ''}</div>
       <div class="rv-word">${esc(e.word)}</div>
       ${verdict}
       <div class="rv-guessers">${guessers}</div>
