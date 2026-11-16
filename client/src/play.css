@@ -1,4 +1,5 @@
-body { overscroll-behavior: none; }
+body { overscroll-behavior: none; touch-action: manipulation; -webkit-touch-callout: none; }
+button { touch-action: manipulation; }
 .phone { height: 100dvh; display: flex; flex-direction: column; max-width: 560px; margin: 0 auto; }
 .phone > header { flex: none; padding: calc(12px + env(safe-area-inset-top)) 16px 12px; background: rgba(0, 0, 0, 0.28); border-bottom: 1px solid var(--panel-strong); display: flex; align-items: center; gap: 12px; min-height: 64px; }
 .phone > header .htxt { flex: 1; min-width: 0; }
@@ -101,3 +102,6 @@ textarea { flex: 1; min-height: 180px; resize: none; line-height: 1.35; }
 .slot .slot-items { gap: 8px; min-height: 112px; }
 .pcard .you-tag { position: absolute; left: 3px; bottom: 3px; padding: 1px 6px; border-radius: 999px; background: var(--accent); color: #2a0a14; font-size: 11px; font-weight: 900; }
 .slot .slot-items { min-height: 126px; }
+
+.slot.over-full { border-color: #ff3b4e; border-style: solid; background: rgba(255, 59, 78, 0.16); box-shadow: 0 0 0 2px rgba(255, 59, 78, 0.45); }
+.over-msg { color: #ff9aa9; font-weight: 800; font-size: 14px; text-align: center; margin-bottom: 8px; }
