@@ -308,11 +308,19 @@ function initGuess(s: ClientState) {
   }
 }
 
+const inSlot = (k: SlotKey) => Object.keys(place).filter((id) => place[id] === k);
+
+/** Slots holding more cards than they allow. Those count for nothing (and block submitting). */
+function overfullSlots(s: ClientState): SlotKey[] {
+  return slotsFor(s).filter((d) => inSlot(d.key).length > d.cap).map((d) => d.key);
+}
+
 function currentGuess(s: ClientState): GuessInput {
-  const inSlot = (k: SlotKey) => Object.keys(place).filter((id) => place[id] === k);
+  const over = new Set(overfullSlots(s));
+  const only = (k: SlotKey) => (over.has(k) ? [] : inSlot(k));
   return {
-    none: inSlot('none')[0] ?? null,
-    pairs: Array.from({ length: s.layout.pairSlots }, (_, i) => inSlot(`pair:${i}`)),
+    none: only('none')[0] ?? null,
+    pairs: Array.from({ length: s.layout.pairSlots }, (_, i) => only(`pair:${i}`)),
   };
 }
 
@@ -331,16 +339,7 @@ function cardHTML(s: ClientState, id: string) {
 function place_(s: ClientState, id: string, slot: SlotKey): boolean {
   if (place[id] === slot) return true;
   if (slot !== 'pool') {
-    const def = slotsFor(s).find((x) => x.key === slot);
-    if (!def) return false;
-    const occupants = Object.keys(place).filter((x) => place[x] === slot);
-    if (occupants.length >= def.cap) {
-      if (def.cap === 1) place[occupants[0]] = 'pool'; // swap: the old card goes back to the pool
-      else {
-        toast('That partnership is full — move someone out first.');
-        return false;
-      }
-    }
+    if (!slotsFor(s).some((x) => x.key === slot)) return false;
   }
   place[id] = slot;
   selected = null;
@@ -363,15 +362,16 @@ function guessView(s: ClientState): View {
   const slots = slotsFor(s);
   const slotHTML = (d: (typeof slots)[number]) => {
     const items = Object.keys(place).filter((id) => place[id] === d.key);
-    return `<div class="slot ${d.cls}" data-slot="${d.key}"><div class="slot-label">${d.label}</div><div class="slot-items">${items.map((id) => cardHTML(s, id)).join('') || `<span class="ph">drag ${d.cap === 2 ? 'two cards' : 'a card'} here</span>`}</div></div>`;
+    return `<div class="slot ${d.cls} ${items.length > d.cap ? 'over-full' : ''}" data-slot="${d.key}"><div class="slot-label">${d.label}</div><div class="slot-items">${items.map((id) => cardHTML(s, id)).join('') || `<span class="ph">drag ${d.cap === 2 ? 'two cards' : 'a card'} here</span>`}</div></div>`;
   };
   const poolIds = s.participantIds.filter((id) => place[id] === 'pool');
   const unplaced = poolIds.length;
+  const tooMany = overfullSlots(s).length > 0;
   return {
     header: header(kicker, 'Who is partnered?', { sub: 'Drag each card into a partnership — find yours too! (or tap a card, then a slot)', timer: true }),
     main: `<div class="slot pool" data-slot="pool"><div class="slot-label">Players &amp; their hints · 🔍 to enlarge</div><div class="slot-items">${poolIds.map((id) => cardHTML(s, id)).join('') || '<span class="ph">everyone is placed ✓</span>'}</div></div>
       ${slots.map(slotHTML).join('')}`,
-    footer: `<button class="btn ${confirmIncomplete ? '' : 'green'}" id="submit">${unplaced && confirmIncomplete ? `${unplaced} not placed — tap again to submit anyway` : 'Submit guesses'}</button>`,
+    footer: `${tooMany ? '<div class="over-msg">Too many cards in a red section — move extras out to submit.</div>' : ''}<button class="btn ${confirmIncomplete ? '' : 'green'}" id="submit" ${tooMany ? 'disabled' : ''}>${unplaced && confirmIncomplete ? `${unplaced} not placed — tap again to submit anyway` : 'Submit guesses'}</button>`,
     after: () => {
       app.querySelectorAll<HTMLElement>('.zoom').forEach((el) =>
         el.addEventListener('click', (e) => {
@@ -388,6 +388,7 @@ function guessView(s: ClientState): View {
       );
       setupDrag(s);
       $('#submit')!.addEventListener('click', () => {
+        if (tooMany) return;
         if (unplaced && !confirmIncomplete) {
           confirmIncomplete = true;
           return render(true);
@@ -405,7 +406,7 @@ let swallowClick = false;
 /** Pointer-based drag and drop (HTML5 drag events don't work on phones). A short tap just selects a card. */
 function setupDrag(s: ClientState) {
   const main = $('main', app)!;
-  let d: { id: string; el: HTMLElement; x: number; y: number; ghost: HTMLElement | null; scroller: number | null; lastY: number } | null = null;
+  let d: { id: string; el: HTMLElement; x: number; y: number; ghost: HTMLElement | null; scroller: number | null; lastY: number; pid: number } | null = null;
 
   const slotAt = (x: number, y: number) => document.elementFromPoint(x, y)?.closest<HTMLElement>('[data-slot]') ?? null;
   const highlight = (target: HTMLElement | null) => {
@@ -421,51 +422,58 @@ function setupDrag(s: ClientState) {
   };
 
   app.querySelectorAll<HTMLElement>('.pcard').forEach((card) => {
+    card.addEventListener('dragstart', (e) => e.preventDefault());
+    card.addEventListener('contextmenu', (e) => e.preventDefault());
     card.addEventListener('pointerdown', (e) => {
-      if ((e.target as HTMLElement).closest('.zoom')) return;
-      card.setPointerCapture(e.pointerId);
-      d = { id: card.dataset.chip!, el: card, x: e.clientX, y: e.clientY, ghost: null, scroller: null, lastY: e.clientY };
-    });
-    card.addEventListener('pointermove', (e) => {
-      if (!d) return;
-      d.lastY = e.clientY;
-      if (!d.ghost) {
-        if (Math.hypot(e.clientX - d.x, e.clientY - d.y) < 8) return;
-        d.ghost = card.cloneNode(true) as HTMLElement;
-        d.ghost.classList.add('ghost');
-        document.body.appendChild(d.ghost);
-        card.classList.add('dragging');
-        // scroll the screen when dragging near the top/bottom edge
-        d.scroller = window.setInterval(() => {
-          if (!d) return;
-          const r = main.getBoundingClientRect();
-          if (d.lastY < r.top + 60) main.scrollTop -= 10;
-          else if (d.lastY > r.bottom - 60) main.scrollTop += 10;
-        }, 16);
-      }
-      d.ghost.style.left = e.clientX + 'px';
-      d.ghost.style.top = e.clientY + 'px';
-      highlight(slotAt(e.clientX, e.clientY));
-    });
-    const up = (e: PointerEvent) => {
-      if (!d) return;
-      const wasDrag = !!d.ghost;
-      const { id } = d;
-      const target = wasDrag ? slotAt(e.clientX, e.clientY) : null;
-      stop();
-      swallowClick = true;
-      setTimeout(() => (swallowClick = false), 60);
-      if (wasDrag) {
-        if (target) place_(s, id, target.dataset.slot!);
-      } else {
-        selected = selected === id ? null : id;
-      }
-      render(true);
-    };
-    card.addEventListener('pointerup', up);
-    card.addEventListener('pointercancel', () => {
-      stop();
-      render(true);
+      if ((e.target as HTMLElement).closest('.zoom') || d) return;
+      e.preventDefault(); // no focus / text selection / emulated mouse events competing with the drag
+      d = { id: card.dataset.chip!, el: card, x: e.clientX, y: e.clientY, ghost: null, scroller: null, lastY: e.clientY, pid: e.pointerId };
+      const move = (ev: PointerEvent) => {
+        if (!d || ev.pointerId !== d.pid) return;
+        d.lastY = ev.clientY;
+        if (!d.ghost) {
+          if (Math.hypot(ev.clientX - d.x, ev.clientY - d.y) < 8) return;
+          d.ghost = card.cloneNode(true) as HTMLElement;
+          d.ghost.classList.add('ghost');
+          document.body.appendChild(d.ghost);
+          card.classList.add('dragging');
+          // scroll the screen when dragging near the top/bottom edge
+          d.scroller = window.setInterval(() => {
+            if (!d) return;
+            const r = main.getBoundingClientRect();
+            if (d.lastY < r.top + 60) main.scrollTop -= 10;
+            else if (d.lastY > r.bottom - 60) main.scrollTop += 10;
+          }, 16);
+        }
+        d.ghost.style.left = ev.clientX + 'px';
+        d.ghost.style.top = ev.clientY + 'px';
+        highlight(slotAt(ev.clientX, ev.clientY));
+      };
+      const finish = (ev: PointerEvent, cancelled: boolean) => {
+        if (!d || ev.pointerId !== d.pid) return;
+        window.removeEventListener('pointermove', move);
+        window.removeEventListener('pointerup', up);
+        window.removeEventListener('pointercancel', cancel);
+        const wasDrag = !!d.ghost;
+        const { id } = d;
+        const target = wasDrag && !cancelled ? slotAt(ev.clientX, ev.clientY) : null;
+        stop();
+        swallowClick = true;
+        setTimeout(() => (swallowClick = false), 400);
+        if (!cancelled) {
+          if (wasDrag) {
+            if (target) place_(s, id, target.dataset.slot!);
+          } else {
+            selected = selected === id ? null : id;
+          }
+        }
+        render(true);
+      };
+      const up = (ev: PointerEvent) => finish(ev, false);
+      const cancel = (ev: PointerEvent) => finish(ev, true);
+      window.addEventListener('pointermove', move);
+      window.addEventListener('pointerup', up);
+      window.addEventListener('pointercancel', cancel);
     });
   });
 }

@@ -35,7 +35,7 @@ export function normalizeGuess(raw: unknown, participants: readonly string[]): G
   if (pairsIn.length > layout.pairSlots) return 'Too many partnerships.';
   const pairs: string[][] = [];
   for (const p of pairsIn) {
-    if (!Array.isArray(p) || p.length > 2) return 'Invalid partnership.';
+    if (!Array.isArray(p)) return 'Invalid partnership.';
     const ids: string[] = [];
     for (const v of p) {
       const id = take(v);
