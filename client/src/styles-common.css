@@ -1,43 +1,60 @@
+/* Detective theme: a dim case-room desk, manila evidence, brass fittings, red rubber stamps. */
 :root {
-  --bg-1: #2a0a14;
-  --bg-2: #5c1428;
-  --ink: #fff;
-  --ink-dim: #e8bfc4;
-  --panel: rgba(255, 255, 255, 0.09);
-  --panel-strong: rgba(255, 255, 255, 0.16);
-  --accent: #ffd23f;
-  --accent-2: #ff4d6d;
-  --good: #3ddc97;
-  --font: ui-rounded, 'SF Pro Rounded', 'Nunito', 'Segoe UI', system-ui, -apple-system, 'Helvetica Neue', Arial, sans-serif;
+  --bg-1: #0d1612;
+  --bg-2: #1f3a31;
+  --ink: #f4ecd8;
+  --ink-dim: #b7ae93;
+  --panel: rgba(244, 236, 216, 0.07);
+  --panel-strong: rgba(244, 236, 216, 0.16);
+  --accent: #e3b341;      /* brass */
+  --accent-deep: #8f6a12;
+  --accent-2: #c8372d;    /* stamp red */
+  --good: #6fbf73;        /* "verified" green */
+  --good-deep: #3f7d44;
+  --paper: #efe1b9;       /* manila */
+  --paper-2: #e2d09c;
+  --paper-ink: #2b2417;
+  --font: 'Special Elite', 'American Typewriter', 'Courier Prime', 'Courier New', ui-monospace, monospace;
+  --font-body: 'Courier Prime', 'American Typewriter', 'Courier New', ui-monospace, monospace;
+  --lens: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Cline x1='64' y1='64' x2='92' y2='92' stroke='%238f6a12' stroke-width='11' stroke-linecap='round'/%3E%3Cline x1='64' y1='64' x2='92' y2='92' stroke='%23e3b341' stroke-width='5' stroke-linecap='round'/%3E%3Ccircle cx='40' cy='40' r='29' fill='%23bfe3da' fill-opacity='.22' stroke='%238f6a12' stroke-width='9'/%3E%3Ccircle cx='40' cy='40' r='29' fill='none' stroke='%23e3b341' stroke-width='4'/%3E%3Cpath d='M22 33a20 20 0 0 1 14-13' stroke='%23fff' stroke-opacity='.7' stroke-width='4' fill='none' stroke-linecap='round'/%3E%3C/svg%3E");
 }
 * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
 html, body { height: 100%; }
 body {
-  font-family: var(--font);
+  font-family: var(--font-body);
   color: var(--ink);
-  background: radial-gradient(1200px 800px at 20% 0%, var(--bg-2), var(--bg-1) 70%) fixed;
+  background:
+    radial-gradient(ellipse 70% 55% at 50% 0%, rgba(255, 226, 150, 0.16), transparent 70%),
+    radial-gradient(ellipse at 50% 50%, transparent 45%, rgba(0, 0, 0, 0.55) 100%),
+    repeating-linear-gradient(0deg, rgba(255, 255, 255, 0.025) 0 1px, transparent 1px 36px),
+    repeating-linear-gradient(90deg, rgba(255, 255, 255, 0.025) 0 1px, transparent 1px 36px),
+    linear-gradient(160deg, var(--bg-2), var(--bg-1) 75%) fixed;
   overflow-x: hidden;
 }
+h1, h2, h3, .logo, .eyebrow, .kicker, .rv-title, .rv-word, .stamp, .big, .btn, .startbtn, .again { font-family: var(--font); font-weight: 400; }
 [hidden] { display: none !important; }
 button { font: inherit; color: inherit; cursor: pointer; border: 0; }
 
-.timer { position: relative; display: grid; place-items: center; font-weight: 900; }
+.timer { position: relative; display: grid; place-items: center; font-family: var(--font); font-size: inherit; border-radius: 50%; background: radial-gradient(circle, #1a1a14 60%, #0c0c08); box-shadow: 0 0 0 0.18em var(--accent-deep), 0 0 0 0.3em var(--accent), 0 0.2em 0.6em rgba(0, 0, 0, 0.5); }
 .timer svg { position: absolute; inset: 0; width: 100%; height: 100%; transform: rotate(-90deg); }
 .timer circle { fill: none; stroke-width: 3.2; }
-.timer .track { stroke: rgba(255, 255, 255, 0.18); }
+.timer .track { stroke: rgba(244, 236, 216, 0.12); }
 .timer .arc { stroke: var(--accent); stroke-linecap: round; stroke-dasharray: 100.5; stroke-dashoffset: calc(100.5 * (1 - var(--frac, 1))); transition: stroke-dashoffset 0.25s linear; }
 .timer.urgent .arc { stroke: var(--accent-2); }
-.timer.urgent { color: var(--accent-2); animation: throb 0.5s ease-in-out infinite alternate; }
+.timer.urgent { color: #ff7b6f; animation: throb 0.5s ease-in-out infinite alternate; }
 .timer.unlimited .arc { stroke-dashoffset: 0; opacity: 0.35; }
 @keyframes throb { to { transform: scale(1.12); } }
 @media (prefers-reduced-motion: reduce) { * { animation-duration: 0.01ms !important; animation-iteration-count: 1 !important; transition-duration: 0.01ms !important; } }
 
-/* hint cards: used on the big screen and on phones */
-.hint-card { display: flex; flex-direction: column; border-radius: 16px; overflow: hidden; background: var(--panel); border: 3px solid var(--pc, #888); min-width: 0; }
-.hint-who { display: flex; align-items: center; gap: 6px; padding: 5px 8px; background: var(--pc, #888); color: #2a0a14; font-weight: 900; font-size: 14px; min-width: 0; }
+/* hint cards = evidence tags on manila paper; used on the big screen and on phones */
+.hint-card { position: relative; display: flex; flex-direction: column; border-radius: 6px; overflow: hidden; background: var(--paper); color: var(--paper-ink); border: 2px solid var(--paper-2); box-shadow: 0 6px 14px rgba(0, 0, 0, 0.45); min-width: 0; }
+.hint-who { display: flex; align-items: center; gap: 6px; padding: 5px 8px; background: var(--pc, #888); color: #1b160c; font-family: var(--font); font-size: 14px; min-width: 0; border-bottom: 2px solid rgba(0, 0, 0, 0.35); }
 .hint-who i { font-style: normal; font-size: 16px; }
 .hint-who span { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-.hint-body { flex: 1; display: grid; place-items: center; min-height: 64px; }
-.hint-body .drawing { display: block; width: 100%; height: auto; aspect-ratio: 1; }
-.hint-text { padding: 14px 8px; font-size: 22px; font-weight: 900; overflow-wrap: anywhere; text-align: center; }
-.hint-none { padding: 14px 8px; color: var(--ink-dim); font-style: italic; font-size: 14px; }
+.hint-body { flex: 1; display: grid; place-items: center; min-height: 64px; background: repeating-linear-gradient(0deg, transparent 0 1.5em, rgba(60, 90, 140, 0.12) 1.5em calc(1.5em + 1px)); }
+.hint-body .drawing { display: block; width: 100%; height: auto; aspect-ratio: 1; mix-blend-mode: multiply; }
+.hint-text { padding: 14px 8px; font-family: var(--font); font-size: 22px; overflow-wrap: anywhere; text-align: center; color: var(--paper-ink); }
+.hint-none { padding: 14px 8px; color: #7d7352; font-style: italic; font-size: 14px; }
+
+/* rubber stamp */
+.stamp { display: inline-block; padding: 0.15em 0.6em; border: 0.14em solid currentColor; border-radius: 0.2em; color: var(--accent-2); text-transform: uppercase; letter-spacing: 0.12em; transform: rotate(-6deg); opacity: 0.92; mix-blend-mode: screen; }

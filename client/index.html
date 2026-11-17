@@ -4,17 +4,24 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
   <title>Matchy Finderoo</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Courier+Prime:wght@400;700&family=Special+Elite&display=swap" />
   <link rel="stylesheet" href="/src/landing.css" />
 </head>
 <body>
   <main class="landing">
-    <h1>Matchy<br />Finderoo</h1>
-    <p class="tag">Find your secret partner. Keep it sneaky.</p>
-    <a class="big host" href="/host.html">📺 Host a game <small>on the big screen</small></a>
-    <form id="join" class="join">
-      <input id="code" maxlength="4" placeholder="ROOM CODE" autocapitalize="characters" autocomplete="off" />
-      <button class="big play" type="submit">📱 Join a game</button>
-    </form>
+    <div class="file">
+      <span class="stamp top">Top secret</span>
+      <div class="lens" aria-hidden="true"></div>
+      <h1>Matchy<br /><em>Finderoo</em></h1>
+      <p class="tag">Somebody out there has your word.<br />Find your partner. Keep it cryptic.</p>
+      <a class="big host" href="/host.html">🕵️ Open a case <small>host on the big screen</small></a>
+      <form id="join" class="join">
+        <input id="code" maxlength="4" placeholder="CASE CODE" autocapitalize="characters" autocomplete="off" />
+        <button class="big play" type="submit">🔍 Join the investigation</button>
+      </form>
+    </div>
   </main>
   <script type="module">
     import './src/styles-common.css';

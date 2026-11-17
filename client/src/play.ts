@@ -121,7 +121,7 @@ function openHintModal(h: HintPublic, s: ClientState) {
   const body = h.kind === 'draw' ? drawingSVG(h.strokes ?? []) : h.kind === 'text' ? `<div class="big-hint">${esc(h.text ?? '')}</div>` : '<p>No hint</p>';
   const m = document.createElement('div');
   m.className = 'modal';
-  m.innerHTML = `<div class="card"><div class="kicker">${esc(nameOf(s, h.playerId))}'s hint</div>${body}<button class="btn ghost">Close</button></div>`;
+  m.innerHTML = `<div class="card"><div class="kicker">${esc(nameOf(s, h.playerId))}'s clue</div>${body}<button class="btn ghost">Close</button></div>`;
   m.addEventListener('click', (e) => {
     if (e.target === m || (e.target as HTMLElement).closest('button')) m.remove();
   });
@@ -159,16 +159,16 @@ function joinView(): View {
 
 function hintView(s: ClientState): View {
   const you = s.you!;
-  const kicker = `Round ${s.round}`;
+  const kicker = `Case #${s.round}`;
   if (you.hintSubmitted) {
     return {
-      header: header(kicker, 'Hint locked in ✓', { timer: true }),
-      main: centerView('🤫', 'Nice and sneaky!', 'Waiting for everyone else…', `<div class="hint-card mine" style="--pc:${byId(s, you.id)?.color}"><div class="hint-body ${you.ownHint?.kind}">${you.ownHint ? hintInner(you.ownHint) : ''}</div></div>`),
+      header: header(kicker, 'Clue filed ✓', { timer: true }),
+      main: centerView('🤐', 'Nicely cryptic!', 'Waiting for everyone else…', `<div class="hint-card mine" style="--pc:${byId(s, you.id)?.color}"><div class="hint-body ${you.ownHint?.kind}">${you.ownHint ? hintInner(you.ownHint) : ''}</div></div>`),
     };
   }
   const max = s.settings.maxHintLength;
   return {
-    header: header(kicker, 'Give a hint', { sub: 'Your partner has the same word. Keep it secret from everyone else!', timer: true }),
+    header: header(kicker, 'File your clue', { sub: 'Your partner has the same word. Keep it secret from everyone else!', timer: true }),
     main: `<div class="word-banner"><small>Your word</small><b>${esc(you.word ?? '')}</b></div>
       <div class="tabs"><button data-mode="type" class="${hintMode === 'type' ? 'on' : ''}">⌨️ Type a word</button><button data-mode="draw" class="${hintMode === 'draw' ? 'on' : ''}">✏️ Draw</button></div>
       ${
@@ -177,7 +177,7 @@ function hintView(s: ClientState): View {
           : `<div class="draw-wrap"><canvas id="cv" width="600" height="600"></canvas></div><div class="row"><button class="btn ghost" id="undo">↩ Undo</button><button class="btn ghost" id="clear">🗑 Clear</button></div>`
       }
       <div class="error" id="err"></div>`,
-    footer: `<button class="btn green" id="send" disabled>Send hint</button>`,
+    footer: `<button class="btn green" id="send" disabled>File clue</button>`,
     after: () => {
       app.querySelectorAll<HTMLElement>('[data-mode]').forEach((b) =>
         b.addEventListener('click', () => {
@@ -352,7 +352,7 @@ function guessView(s: ClientState): View {
   const you = s.you!;
   initGuess(s);
   const locked = you.guessSubmitted;
-  const kicker = `Round ${s.round} · your word: ${you.word ?? ''}`;
+  const kicker = `Case #${s.round} · your word: ${you.word ?? ''}`;
   if (locked) {
     return {
       header: header(kicker, 'Guesses locked in ✓', { timer: true }),
@@ -369,9 +369,9 @@ function guessView(s: ClientState): View {
   const tooMany = overfullSlots(s).length > 0;
   return {
     header: header(kicker, 'Who is partnered?', { sub: 'Drag each card into a partnership — find yours too! (or tap a card, then a slot)', timer: true }),
-    main: `<div class="slot pool" data-slot="pool"><div class="slot-label">Players &amp; their hints · 🔍 to enlarge</div><div class="slot-items">${poolIds.map((id) => cardHTML(s, id)).join('') || '<span class="ph">everyone is placed ✓</span>'}</div></div>
+    main: `<div class="slot pool" data-slot="pool"><div class="slot-label">Suspects &amp; their clues · 🔍 to inspect</div><div class="slot-items">${poolIds.map((id) => cardHTML(s, id)).join('') || '<span class="ph">everyone is placed ✓</span>'}</div></div>
       ${slots.map(slotHTML).join('')}`,
-    footer: `${tooMany ? '<div class="over-msg">Too many cards in a red section — move extras out to submit.</div>' : ''}<button class="btn ${confirmIncomplete ? '' : 'green'}" id="submit" ${tooMany ? 'disabled' : ''}>${unplaced && confirmIncomplete ? `${unplaced} not placed — tap again to submit anyway` : 'Submit guesses'}</button>`,
+    footer: `${tooMany ? '<div class="over-msg">Too many cards in a red section — move extras out to submit.</div>' : ''}<button class="btn ${confirmIncomplete ? '' : 'green'}" id="submit" ${tooMany ? 'disabled' : ''}>${unplaced && confirmIncomplete ? `${unplaced} not placed — tap again to submit anyway` : 'File theory'}</button>`,
     after: () => {
       app.querySelectorAll<HTMLElement>('.zoom').forEach((el) =>
         el.addEventListener('click', (e) => {
@@ -502,7 +502,7 @@ function revealView(s: ClientState): View {
       msg = `<p class="bad-msg">You didn't get this one.</p>`;
     }
   }
-  return { header: header(`Round ${s.round}`, 'The big reveal'), main: centerView('📺', 'Eyes on the big screen!', '', msg) };
+  return { header: header(`Case #${s.round}`, 'The big reveal'), main: centerView('🕵️', 'Eyes on the big screen!', '', msg) };
 }
 
 function standingsView(s: ClientState): View {
@@ -510,8 +510,8 @@ function standingsView(s: ClientState): View {
   const mine = rankPlayers(s.players).find((p) => p.id === you.id)!;
   const d = s.roundDeltas?.[you.id] ?? 0;
   return {
-    header: header(`Round ${s.round}`, 'Standings'),
-    main: `<div class="center"><div class="delta ${d ? '' : 'zero'}">${d ? '+' + d + (d === 1 ? ' point' : ' points') : 'No points this round'}</div><div class="rank">${ordinal(mine.rank)}</div><h2>${mine.score} ${mine.score === 1 ? 'point' : 'points'}</h2><p>Next round starts in a moment.</p></div>`,
+    header: header(`Case #${s.round}`, 'Standings'),
+    main: `<div class="center"><div class="delta ${d ? '' : 'zero'}">${d ? '+' + d + (d === 1 ? ' point' : ' points') : 'No points this case'}</div><div class="rank">${ordinal(mine.rank)}</div><h2>${mine.score} ${mine.score === 1 ? 'point' : 'points'}</h2><p>Next round starts in a moment.</p></div>`,
   };
 }
 
@@ -521,7 +521,7 @@ function buildView(s: ClientState): View {
 
   if (['hint', 'guess', 'reveal', 'standings'].includes(s.phase) && !you.participating) {
     return {
-      header: header(`Round ${s.round}`, 'Round in progress'),
+      header: header(`Case #${s.round}`, 'Case in progress'),
       main: centerView('🍿', "You're in!", "You'll join in at the start of the next round. Watch the big screen until then."),
     };
   }

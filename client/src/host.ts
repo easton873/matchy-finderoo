@@ -79,7 +79,7 @@ async function prepareJoinInfo() {
       /* fall back to origin */
     }
   }
-  qrDataUrl = await QRCode.toDataURL(`${joinBase}/play.html?room=${roomCode}`, { margin: 1, width: 520, color: { dark: '#2a0a14', light: '#ffffff' } });
+  qrDataUrl = await QRCode.toDataURL(`${joinBase}/play.html?room=${roomCode}`, { margin: 1, width: 520, color: { dark: '#14130d', light: '#ffffff' } });
   viewKey = '';
   render();
 }
@@ -93,7 +93,7 @@ function avatar(p: PlayerInfo | undefined, cls = 'av') {
 }
 
 function confetti(count = 140) {
-  const colors = ['#ffd23f', '#ff4d6d', '#2ec4ff', '#3ddc97', '#c77dff', '#ff9f1c', '#ffffff'];
+  const colors = ['#e3b341', '#c8372d', '#efe1b9', '#6fbf73', '#f4ecd8', '#8f6a12'];
   for (let i = 0; i < count; i++) {
     const el = document.createElement('i');
     el.className = 'cf';
@@ -143,16 +143,16 @@ function lobbyView(s: ClientState): string {
   };
   return `<section class="lobby">
     <div class="lobby-left">
-      <div class="logo">${esc(GAME_NAME).replace(' ', '<br>')}</div>
+      <div class="logo">Matchy<br><em>Finderoo</em></div>
       <div class="join-card">
         ${qrDataUrl ? `<img class="qr" src="${qrDataUrl}" alt="QR code to join" />` : '<div class="qr"></div>'}
-        <div class="t">Scan the code or go to<br /><b>${esc(joinBase.replace(/^https?:\/\//, ''))}</b><br />and enter room code<div class="roomcode">${esc(s.code)}</div></div>
+        <div class="t">Scan the code or go to<br /><b>${esc(joinBase.replace(/^https?:\/\//, ''))}</b><br />and enter the case code<div class="roomcode">${esc(s.code)}</div></div>
       </div>
     </div>
     <div class="lobby-right">
       <div class="bubbles" id="bubbles"></div>
       <div class="settings">
-        <h3>Game settings</h3>
+        <h3>Case settings</h3>
         <label>Game ends when<select id="endMode"><option value="points">First to X points</option><option value="rounds">Play X rounds</option></select></label>
         <label><span id="targetLabel">Points to win</span><input id="target" type="number" min="1" max="999" /></label>
         <label>Max typed hint length<input id="maxLen" type="number" min="3" max="40" /></label>
@@ -167,7 +167,7 @@ function lobbyView(s: ClientState): string {
 function lobbyLive(s: ClientState) {
   const b = $('#bubbles')!;
   if (!s.players.length) {
-    if (!b.querySelector('.empty')) b.innerHTML = '<div class="empty">Waiting for players to join… 📱</div>';
+    if (!b.querySelector('.empty')) b.innerHTML = '<div class="empty">Waiting for detectives to arrive… 🕵️</div>';
   } else {
     b.querySelector('.empty')?.remove();
     syncChildren(
@@ -187,7 +187,7 @@ function lobbyLive(s: ClientState) {
   const live = s.players.filter((p) => p.connected).length;
   const start = $<HTMLButtonElement>('#start')!;
   start.disabled = live < MIN_PLAYERS;
-  start.textContent = live < MIN_PLAYERS ? `Need at least ${MIN_PLAYERS} players` : `Start game (${live} players)`;
+  start.textContent = live < MIN_PLAYERS ? `Need at least ${MIN_PLAYERS} detectives` : `Open the case (${live} detectives)`;
   const setIfIdle = (el: HTMLInputElement | HTMLSelectElement, v: string) => {
     if (document.activeElement !== el && el.value !== v) el.value = v;
   };
@@ -200,24 +200,24 @@ function lobbyLive(s: ClientState) {
 
 function hintPhaseView(s: ClientState): string {
   return `<section>
-    <div class="eyebrow">Round ${s.round}</div>
-    <h1>Look at your phone!</h1>
-    <div class="sub">Everyone has a secret word. <b>Somebody else has the same one.</b><br>Write one word or draw a picture that your partner will recognize — but don't make it too easy!</div>
-    <div class="status"><b data-done>0/0</b> hints in</div>
+    <div class="eyebrow">Case #${s.round}</div>
+    <h1>Check your phone, detective!</h1>
+    <div class="sub">Everyone holds a secret word. <b>Exactly one other detective has the same one.</b><br>Leave a clue — one word or a sketch — that only your partner will crack. Don't make it too easy!</div>
+    <div class="status"><b data-done>0/0</b> clues filed</div>
   </section>`;
 }
 
 function guessPhaseView(s: ClientState): string {
   const n = s.hints.length;
-  const cw = n <= 3 ? 22 : n <= 6 ? 15 : n <= 8 ? 13 : n <= 12 ? 12 : n <= 18 ? 10 : 8; // card width in rem, so every hint fits on screen
+  const cw = n <= 3 ? 22 : n <= 6 ? 13 : n <= 8 ? 13 : n <= 12 ? 12 : n <= 18 ? 10 : 8; // card width in rem, so every hint fits on screen
   const pairs = s.layout.pairSlots;
   const odd = s.layout.noneSlot ? ' Someone has <b>no partner</b> — can you spot who?' : '';
-  const cards = s.hints.map((h, i) => hintCardHTML(h, byId(s, h.playerId)).replace('class="hint-card ', `style="animation-delay:${(i * 0.05).toFixed(2)}s" class="hint-card `)).join('');
+  const cards = s.hints.map((h, i) => hintCardHTML(h, byId(s, h.playerId)).replace('style="--pc:', `style="animation-delay:${(i * 0.05).toFixed(2)}s;--pc:`)).join('');
   return `<section>
-    <div class="eyebrow">Round ${s.round} · ${n} players · ${pairs} partnerships</div>
-    <div class="sub">Who is partnered with whom?${odd}</div>
+    <div class="eyebrow">Case #${s.round} · ${n} suspects · ${pairs} partnerships</div>
+    <div class="sub">Study the evidence. Who is partnered with whom?${odd}</div>
     <div class="hgrid" style="--cw:${cw}rem">${cards}</div>
-    <div class="status"><b data-done>0/0</b> locked in</div>
+    <div class="status"><b data-done>0/0</b> theories filed</div>
   </section>`;
 }
 
@@ -235,12 +235,12 @@ function revealView(s: ClientState): string {
   const b = byId(s, e.bId);
   let verdict = '';
   if (e.kind === 'pair') {
-    if (e.aFoundB && e.bFoundA) verdict = `<div class="rv-verdict ok">🎉 They found each other! +1 each</div>`;
+    if (e.aFoundB && e.bFoundA) verdict = `<div class="rv-verdict ok">✅ Case closed — they found each other! +1 each</div>`;
     else if (e.aFoundB) verdict = `<div class="rv-verdict no">${esc(a!.name)} picked ${esc(b!.name)}, but ${esc(b!.name)} didn't pick back — no points</div>`;
     else if (e.bFoundA) verdict = `<div class="rv-verdict no">${esc(b!.name)} picked ${esc(a!.name)}, but ${esc(a!.name)} didn't pick back — no points</div>`;
-    else verdict = `<div class="rv-verdict no">They never found each other</div>`;
+    else verdict = `<div class="rv-verdict no">They never found each other — cold case</div>`;
   } else {
-    verdict = `<div class="rv-verdict no">Nobody else had this word!</div>`;
+    verdict = `<div class="rv-verdict no">Nobody else held this word!</div>`;
   }
   const chips = e.guesserIds
     .map((id, i) => {
@@ -249,15 +249,15 @@ function revealView(s: ClientState): string {
     })
     .join('');
   const guessers = e.guesserIds.length
-    ? `<div class="rv-label" style="--t0:${(t0 - 0.4).toFixed(2)}s">${e.kind === 'odd' ? 'Spotted the odd one out' : 'Spotted this partnership'}</div><div class="rv-chips">${chips}</div>`
-    : `<div class="rv-none" style="--t0:${(t0 - 0.4).toFixed(2)}s">${e.kind === 'odd' ? 'Nobody spotted the odd one out!' : 'Nobody spotted this partnership!'}</div>`;
-  const title = e.kind === 'odd' ? 'The player with no partner' : `Partnership ${s.revealIndex + 1} of ${s.revealTotal - (s.layout.noneSlot ? 1 : 0)}`;
+    ? `<div class="rv-label" style="--t0:${(t0 - 0.4).toFixed(2)}s">${e.kind === 'odd' ? 'Spotted the lone suspect' : 'Spotted this partnership'}</div><div class="rv-chips">${chips}</div>`
+    : `<div class="rv-none" style="--t0:${(t0 - 0.4).toFixed(2)}s">${e.kind === 'odd' ? 'Nobody spotted the lone suspect!' : 'Nobody spotted this partnership!'}</div>`;
+  const title = e.kind === 'odd' ? 'The lone suspect — no partner' : `Partnership ${s.revealIndex + 1} of ${s.revealTotal - (s.layout.noneSlot ? 1 : 0)}`;
   return `<section class="reveal">
     <div class="rv-progress">${s.revealIndex + 1} / ${s.revealTotal}</div>
     <div class="rv ${e.kind === 'odd' ? 'rv-odd' : ''}">
       <div class="rv-title">${title}</div>
       <div class="rv-pair">${who(e.aId, 0)}${e.kind === 'pair' ? `${who(e.bId, 0.25)}` : ''}</div>
-      <div class="rv-word">${esc(e.word)}</div>
+      <div class="rv-word"><span class="lens" aria-hidden="true"></span>${esc(e.word)}</div>
       ${verdict}
       <div class="rv-guessers">${guessers}</div>
     </div>
@@ -279,10 +279,10 @@ function standingsView(s: ClientState): string {
     })
     .join('');
   return `<section>
-    <div class="eyebrow">Round ${s.round} standings</div>
+    <div class="eyebrow">Case #${s.round} · leaderboard</div>
     <div class="sub">${esc(goal)}</div>
     <div class="board">${rows}</div>
-    ${final ? '<div class="final-note">🏁 That was the final round!</div>' : ''}
+    ${final ? '<div class="final-note">🏁 FINAL CASE FILED</div>' : ''}
     <div class="sum-bar"><i data-timer-bar></i></div>
   </section>`;
 }
@@ -290,7 +290,7 @@ function standingsView(s: ClientState): string {
 function gameOverView(s: ClientState): string {
   const ranked = rankPlayers(s.players);
   const winners = ranked.filter((p) => s.winnerIds.includes(p.id));
-  const title = winners.length > 1 ? `It's a tie! ${winners.map((w) => esc(w.name)).join(' & ')}` : `${esc(winners[0]?.name ?? 'Nobody')} wins!`;
+  const title = winners.length > 1 ? `Dead heat! ${winners.map((w) => esc(w.name)).join(' & ')}` : `${esc(winners[0]?.name ?? 'Nobody')} is the top detective!`;
   const top3 = ranked.slice(0, 3);
   const order = top3.length === 3 ? [top3[1], top3[0], top3[2]] : top3.length === 2 ? [top3[1], top3[0]] : top3;
   const heights: Record<number, number> = { 0: 100, 1: 72, 2: 52 };
@@ -306,7 +306,7 @@ function gameOverView(s: ClientState): string {
     <h1>${title}</h1>
     <div class="podium">${pod}</div>
     ${others ? `<div class="others">${others}</div>` : ''}
-    <button class="again" id="again">Play again</button>
+    <button class="again" id="again">Open a new case</button>
   </section>`;
 }
 
