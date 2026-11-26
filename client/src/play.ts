@@ -424,6 +424,10 @@ function setupDrag(s: ClientState) {
   app.querySelectorAll<HTMLElement>('.pcard').forEach((card) => {
     card.addEventListener('dragstart', (e) => e.preventDefault());
     card.addEventListener('contextmenu', (e) => e.preventDefault());
+    // Belt and braces against the browser taking over the gesture (pull-to-refresh / scroll):
+    // cancel touch moves that start on a card so the pointer stream is never cancelled mid-drag.
+    card.addEventListener('touchstart', (e) => { if (!(e.target as HTMLElement).closest('.zoom')) e.preventDefault(); }, { passive: false });
+    card.addEventListener('touchmove', (e) => e.preventDefault(), { passive: false });
     card.addEventListener('pointerdown', (e) => {
       if ((e.target as HTMLElement).closest('.zoom') || d) return;
       e.preventDefault(); // no focus / text selection / emulated mouse events competing with the drag
